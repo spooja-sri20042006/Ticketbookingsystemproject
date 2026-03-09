@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Special Offers</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero">
+      <span class="tag">✦ Limited Time</span>
+      <h1>Exclusive Deals</h1>
+      <p>Hand-picked discounts on the world's best destinations</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.75rem; margin: 2rem 0;">
+      {% for offer in offers %}
+      <div class="offer-card">
+        <div class="offer-card-header">
+          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">✈️</div>
+          <h3 class="offer-destination">{{ offer.destination }}</h3>
+          <div class="offer-badge">{{ offer.discount }} OFF</div>
+        </div>
+        <div class="offer-body">
+          <p style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 0.3rem;">Starting from</p>
+          <p class="offer-price">{{ offer.price }}</p>
+          <div style="background: rgba(255,95,109,0.08); border: 1px solid rgba(255,95,109,0.2); border-radius: var(--radius-sm); padding: 0.75rem; text-align: center; margin-bottom: 1.25rem;">
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Limited Time Offer</p>
+            <p style="color: var(--coral); font-weight: 700; font-size: 0.88rem;">Expires in 5 days</p>
+          </div>
+          <button class="btn btn-primary" style="width: 100%;">Book Now</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Filter Section -->
+    <div class="info-box" style="margin: 3rem 0;">
+      <h3 class="section-title" style="font-size: 1.1rem; margin-bottom: 1.5rem;">Filter Offers</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label>Destination</label>
+          <input type="text" placeholder="Search destination">
+        </div>
+        <div class="form-group">
+          <label>Min Discount</label>
+          <select>
+            <option>All</option>
+            <option>10%+</option>
+            <option>20%+</option>
+            <option>30%+</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Price Range</label>
+          <select>
+            <option>All</option>
+            <option>Under $500</option>
+            <option>$500–$1000</option>
+            <option>$1000+</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flash Sale Banner -->
+    <div class="flash-banner">
+      <h2>⚡ Flash Sale Alert!</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1.25rem; font-size: 1rem;">
+        50% off on all Middle East destinations — this week only!
+      </p>
+      <button class="btn btn-lime">View Flash Sale</button>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Search Destinations</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/bookings" class="btn btn-secondary">My Bookings</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero">
+      <span class="tag">✦ Discover</span>
+      <h1>Find Your Perfect<br>Destination</h1>
+      <p>Thousands of amazing locations. One smart search.</p>
+    </div>
+
+    <div class="search-card">
+      <h2>Advanced Search</h2>
+      <form method="POST" onsubmit="return validateBooking()">
+        <div class="search-grid">
+          <div class="form-group">
+            <label for="source">From</label>
+            <input type="text" id="source" name="source" placeholder="Departure city" required>
+          </div>
+          <div class="form-group">
+            <label for="destination">To</label>
+            <input type="text" id="destination" name="destination" placeholder="Destination city" required>
+          </div>
+        </div>
+
+        <div class="search-grid">
+          <div class="form-group">
+            <label for="date">Departure Date</label>
+            <input type="date" id="date" name="date" required>
+          </div>
+          <div class="form-group">
+            <label for="budget">Budget Range</label>
+            <select name="budget" id="budget">
+              <option value="">Select budget</option>
+              <option value="budget">Budget (Under $500)</option>
+              <option value="moderate">Moderate ($500–$1500)</option>
+              <option value="premium">Premium ($1500–$3000)</option>
+              <option value="luxury">Luxury ($3000+)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="search-grid">
+          <div class="form-group">
+            <label for="travelers">Travelers</label>
+            <input type="number" id="travelers" name="travelers" min="1" value="1">
+          </div>
+          <div class="form-group">
+            <label for="duration">Trip Duration</label>
+            <select name="duration" id="duration">
+              <option value="">Select duration</option>
+              <option value="weekend">Weekend (2–3 days)</option>
+              <option value="week">One Week</option>
+              <option value="2weeks">Two Weeks</option>
+              <option value="month">One Month</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="search-grid">
+          <div class="form-group">
+            <label for="category">Travel Category</label>
+            <select name="category" id="category">
+              <option value="">Select category</option>
+              <option value="adventure">Adventure</option>
+              <option value="beach">Beach</option>
+              <option value="culture">Culture & History</option>
+              <option value="food">Food & Wine</option>
+              <option value="mountains">Mountains & Hiking</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="transportation">Transportation</label>
+            <select name="transportation" id="transportation" class="transportation-select">
+              <option value="">Select type</option>
+              <option value="bus">🚌 Bus</option>
+              <option value="car">🚗 Car</option>
+              <option value="train">🚆 Train</option>
+              <option value="flight">✈️ Flight</option>
+              <option value="boat">⛵ Boat</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.05rem; margin-top: 0.5rem;">
+          Search &amp; Book Now →
+        </button>
+      </form>
+    </div>
+
+    <div class="features">
+      <div class="feature-card">
+        <span class="feature-icon">🔥</span>
+        <h3>Trending Now</h3>
+        <p>Tokyo · Paris · New York · Bali</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">💰</span>
+        <h3>Best Deals</h3>
+        <p>Save up to 40% on selected bookings</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⭐</span>
+        <h3>Top Rated</h3>
+        <p>Highly recommended by real travelers</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

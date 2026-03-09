@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — My Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero">
+      <span class="tag">✦ Account</span>
+      <h1>My Profile</h1>
+      <p>Manage your account and travel preferences</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+
+      <!-- Profile Card -->
+      <div class="form-container" style="max-width: none; margin: 0;">
+        <div style="text-align: center; margin-bottom: 1.75rem;">
+          <div class="avatar-ring">👤</div>
+          <h3 style="font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem;">
+            {{ user.name if user else 'Traveler' }}
+          </h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">{{ user.email if user else '' }}</p>
+        </div>
+
+        <div style="margin-bottom: 1.25rem; padding: 1rem; background: var(--teal-dim); border-radius: var(--radius-sm);">
+          <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 0.3rem;">Member Since</p>
+          <p style="font-weight: 500;">{% if user %}{{ user.get('created_at', 'N/A') }}{% else %}N/A{% endif %}</p>
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%;">Edit Profile</button>
+      </div>
+
+      <!-- Stats Card -->
+      <div class="form-container" style="max-width: none; margin: 0;">
+        <h3 class="section-title" style="font-size: 1.2rem;">Travel Statistics</h3>
+
+        <div style="display: grid; gap: 1rem;">
+          <div style="background: var(--teal-dim); border: 1px solid rgba(0,229,197,0.2); border-radius: var(--radius-sm); padding: 1rem;">
+            <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 0.3rem;">Total Bookings</p>
+            <p style="font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--teal);">{{ total_bookings }}</p>
+          </div>
+          <div style="background: var(--lime-dim); border: 1px solid rgba(184,255,87,0.2); border-radius: var(--radius-sm); padding: 1rem;">
+            <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 0.3rem;">Traveler Rating</p>
+            <p style="font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--lime);">⭐ 4.8</p>
+          </div>
+          <div style="background: rgba(255,200,87,0.07); border: 1px solid rgba(255,200,87,0.2); border-radius: var(--radius-sm); padding: 1rem;">
+            <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 0.3rem;">Loyalty Points</p>
+            <p style="font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--gold);">2,450 pts</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preferences Card -->
+      <div class="form-container" style="max-width: none; margin: 0;">
+        <h3 class="section-title" style="font-size: 1.2rem;">Preferences</h3>
+
+        <div class="form-group">
+          <label>Preferred Currency</label>
+          <select>
+            <option>USD (US Dollar)</option>
+            <option>EUR (Euro)</option>
+            <option>GBP (British Pound)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Travel Style</label>
+          <select>
+            <option>Adventure</option>
+            <option>Luxury</option>
+            <option>Budget</option>
+            <option>Family</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="width: 100%; margin-top: 0.75rem;">Save Preferences</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Recent Bookings -->
+    <h2 class="section-title">Recent Bookings</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Destination</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Paris, France</td>
+            <td>15 March 2026</td>
+            <td><span class="badge badge-success">Confirmed</span></td>
+          </tr>
+          <tr>
+            <td>Tokyo, Japan</td>
+            <td>22 April 2026</td>
+            <td><span class="badge badge-pending">Pending</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

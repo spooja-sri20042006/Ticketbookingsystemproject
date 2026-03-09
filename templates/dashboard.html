@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/profile" class="btn btn-secondary">👤 Profile</a>
+      <a href="/notifications" class="btn btn-secondary">🔔 Alerts</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero">
+      <span class="tag">✦ Your Command Center</span>
+      <h1>Travel Dashboard</h1>
+      <p>Manage bookings, discover destinations, and unlock exclusive deals</p>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="stat-card"><div class="stat-number">5</div><div class="stat-label">Total Bookings</div></div>
+      <div class="stat-card"><div class="stat-number">12</div><div class="stat-label">Countries Visited</div></div>
+      <div class="stat-card"><div class="stat-number">$2,450</div><div class="stat-label">Total Spent</div></div>
+      <div class="stat-card"><div class="stat-number">⭐ 4.8</div><div class="stat-label">Traveler Rating</div></div>
+    </div>
+
+    <div class="divider"></div>
+    <p class="section-title" style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:1rem;">Core Features</p>
+    <div class="features">
+      <div class="feature-card"><span class="feature-icon">🔍</span><h3>Search & Book</h3><p>Find and book your next adventure</p><a href="/search" class="btn btn-primary" style="width:100%;margin-top:1.25rem;text-align:center;">Explore Now</a></div>
+      <div class="feature-card"><span class="feature-icon">📋</span><h3>My Bookings</h3><p>View and manage all bookings</p><a href="/bookings" class="btn btn-primary" style="width:100%;margin-top:1.25rem;text-align:center;">View Bookings</a></div>
+      <div class="feature-card"><span class="feature-icon">🎁</span><h3>Special Offers</h3><p>Exclusive deals and discounts</p><a href="/offers" class="btn btn-lime" style="width:100%;margin-top:1.25rem;text-align:center;">View Offers</a></div>
+      <div class="feature-card"><span class="feature-icon">📱</span><h3>Travel Tips</h3><p>Expert advice from seasoned travelers</p><a href="/tips" class="btn btn-secondary" style="width:100%;margin-top:1.25rem;text-align:center;">Learn More</a></div>
+    </div>
+
+    <div class="divider"></div>
+    <p class="section-title" style="font-size:0.78rem;color:var(--teal);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:1rem;">✦ AI & Smart Features</p>
+    <div class="features">
+      <div class="feature-card" style="border-color:rgba(0,229,197,0.25);"><span class="feature-icon">🤖</span><h3>AI Chatbot</h3><p>Personalized travel recommendations</p><a href="/chatbot" class="btn btn-primary" style="width:100%;margin-top:1.25rem;text-align:center;">Chat Now</a></div>
+      <div class="feature-card" style="border-color:rgba(184,255,87,0.25);"><span class="feature-icon">🗺️</span><h3>Interactive Map</h3><p>Explore destinations on world map</p><a href="/map" class="btn btn-lime" style="width:100%;margin-top:1.25rem;text-align:center;">Open Map</a></div>
+      <div class="feature-card" style="border-color:rgba(255,200,87,0.25);"><span class="feature-icon">💬</span><h3>Reviews</h3><p>Read & write destination reviews</p><a href="/reviews" class="btn btn-secondary" style="width:100%;margin-top:1.25rem;text-align:center;border-color:rgba(255,200,87,0.4);color:var(--gold);">View Reviews</a></div>
+      <div class="feature-card" style="border-color:rgba(255,95,109,0.25);"><span class="feature-icon">📊</span><h3>Analytics</h3><p>Travel charts and spending insights</p><a href="/analytics" class="btn btn-secondary" style="width:100%;margin-top:1.25rem;text-align:center;border-color:rgba(255,95,109,0.4);color:var(--coral);">View Analytics</a></div>
+    </div>
+
+    <div class="divider"></div>
+    <p class="section-title" style="font-size:0.78rem;color:var(--lime);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:1rem;">✦ New Features</p>
+    <div class="features">
+      <div class="feature-card" style="border-color:rgba(0,229,197,0.2);"><span class="feature-icon">🌤️</span><h3>Weather Checker</h3><p>Live weather at any destination</p><a href="/weather" class="btn btn-primary" style="width:100%;margin-top:1.25rem;text-align:center;">Check Weather</a></div>
+      <div class="feature-card" style="border-color:rgba(184,255,87,0.2);"><span class="feature-icon">💱</span><h3>Currency Converter</h3><p>Convert currencies instantly</p><a href="/currency" class="btn btn-lime" style="width:100%;margin-top:1.25rem;text-align:center;">Convert Now</a></div>
+      <div class="feature-card" style="border-color:rgba(255,200,87,0.2);"><span class="feature-icon">📅</span><h3>Trip Planner</h3><p>Build day-by-day itineraries</p><a href="/planner" class="btn btn-secondary" style="width:100%;margin-top:1.25rem;text-align:center;border-color:rgba(255,200,87,0.4);color:var(--gold);">Plan Trip</a></div>
+      <div class="feature-card" style="border-color:rgba(123,143,247,0.2);"><span class="feature-icon">🎯</span><h3>Travel Quiz</h3><p>Test your world geography knowledge</p><a href="/quiz" class="btn btn-secondary" style="width:100%;margin-top:1.25rem;text-align:center;border-color:rgba(123,143,247,0.4);color:#7b8ff7;">Play Quiz</a></div>
+      <div class="feature-card" style="border-color:rgba(255,95,109,0.2);"><span class="feature-icon">📸</span><h3>Photo Gallery</h3><p>Explore stunning destination photos</p><a href="/gallery" class="btn btn-secondary" style="width:100%;margin-top:1.25rem;text-align:center;border-color:rgba(255,95,109,0.4);color:var(--coral);">View Gallery</a></div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

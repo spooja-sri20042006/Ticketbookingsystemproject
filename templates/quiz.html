@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Travel Quiz</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .quiz-box {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .quiz-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      backdrop-filter: blur(14px);
+      animation: fadeUp 0.4s ease both;
+    }
+    .quiz-progress {
+      display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem;
+    }
+    .quiz-bar { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+    .quiz-bar-fill { height: 100%; background: linear-gradient(90deg,var(--teal),var(--lime)); border-radius: 3px; transition: width 0.5s ease; }
+    .quiz-num { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
+    .quiz-question {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+    }
+    .quiz-flag { font-size: 3rem; text-align: center; margin-bottom: 1.25rem; display: block; }
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-top: 1.5rem; }
+    .option-btn {
+      background: var(--bg-layer2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      color: var(--text-primary);
+    }
+    .option-btn:hover:not(:disabled) { border-color: var(--teal); background: var(--teal-dim); transform: translateY(-2px); }
+    .option-btn.correct { border-color: var(--lime)!important; background: rgba(184,255,87,0.12)!important; color: var(--lime)!important; }
+    .option-btn.wrong { border-color: var(--coral)!important; background: rgba(255,95,109,0.1)!important; color: var(--coral)!important; }
+    .option-btn:disabled { cursor: default; transform: none!important; }
+    .score-display {
+      text-align: center; padding: 3rem 2rem;
+    }
+    .score-big { font-family: var(--font-display); font-size: 5rem; font-weight: 800; color: var(--teal); line-height: 1; }
+    .score-label { color: var(--text-secondary); font-size: 1.1rem; margin: 0.5rem 0 1.5rem; }
+    .feedback-text { font-size: 0.88rem; margin-top: 0.75rem; padding: 0.75rem; border-radius: var(--radius-sm); }
+    .feedback-correct { background: rgba(184,255,87,0.1); color: var(--lime); border: 1px solid rgba(184,255,87,0.2); }
+    .feedback-wrong { background: rgba(255,95,109,0.08); color: var(--coral); border: 1px solid rgba(255,95,109,0.2); }
+    .streak { display: inline-block; padding: 0.25rem 0.75rem; background: rgba(255,200,87,0.1); border: 1px solid rgba(255,200,87,0.3); border-radius: 20px; color: var(--gold); font-size: 0.82rem; font-weight: 600; margin-left: 0.5rem; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero" style="padding-bottom:1.5rem;">
+      <span class="tag">✦ Fun & Learn</span>
+      <h1>Travel Quiz</h1>
+      <p>Test your world geography & travel knowledge!</p>
+    </div>
+
+    <div class="quiz-box">
+      <div id="quizStart" class="quiz-card" style="text-align:center;">
+        <div style="font-size:4rem;margin-bottom:1rem;">🌍</div>
+        <h2 style="font-family:var(--font-display);font-size:1.8rem;font-weight:800;margin-bottom:0.75rem;">Ready to test your travel knowledge?</h2>
+        <p style="color:var(--text-secondary);margin-bottom:2rem;">10 questions · Flags, Capitals, Facts & more!</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="startQuiz('easy')">🟢 Easy</button>
+          <button class="btn btn-secondary" onclick="startQuiz('medium')" style="border-color:rgba(255,200,87,0.4);color:var(--gold);">🟡 Medium</button>
+          <button class="btn btn-secondary" onclick="startQuiz('hard')" style="border-color:rgba(255,95,109,0.4);color:var(--coral);">🔴 Hard</button>
+        </div>
+      </div>
+
+      <div id="quizPlay" style="display:none;">
+        <div class="quiz-card">
+          <div class="quiz-progress">
+            <div class="quiz-bar"><div class="quiz-bar-fill" id="qBar" style="width:0%"></div></div>
+            <span class="quiz-num" id="qNum">1/10</span>
+            <span id="streakBadge"></span>
+          </div>
+          <span class="quiz-flag" id="qFlag"></span>
+          <p style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:0.5rem;" id="qCategory"></p>
+          <p class="quiz-question" id="qQuestion"></p>
+          <div class="options-grid" id="qOptions"></div>
+          <div id="qFeedback"></div>
+          <button class="btn btn-primary" id="qNext" style="width:100%;margin-top:1.25rem;display:none;" onclick="nextQuestion()">Next Question →</button>
+        </div>
+        <div style="text-align:center;margin-top:1rem;">
+          <span style="color:var(--text-muted);font-size:0.85rem;">Score: </span>
+          <span id="liveScore" style="font-family:var(--font-display);font-weight:700;color:var(--lime);">0</span>
+          <span style="color:var(--text-muted);font-size:0.85rem;"> pts</span>
+        </div>
+      </div>
+
+      <div id="quizResult" class="quiz-card" style="display:none;">
+        <div class="score-display">
+          <div style="font-size:3rem;margin-bottom:0.5rem;" id="resultEmoji">🏆</div>
+          <div class="score-big" id="resultScore">0</div>
+          <div class="score-label" id="resultLabel">out of 10 correct</div>
+          <p id="resultMsg" style="color:var(--text-secondary);margin-bottom:2rem;"></p>
+          <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="startQuiz(currentDiff)">Play Again</button>
+            <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const allQuestions = {
+      easy: [
+        { flag:'🇫🇷', cat:'Flag', q:'Which country does this flag belong to?', options:['France','Germany','Italy','Spain'], ans:0 },
+        { flag:'🗼', cat:'Landmark', q:'The Eiffel Tower is located in which city?', options:['Rome','London','Paris','Berlin'], ans:2 },
+        { flag:'🇯🇵', cat:'Flag', q:'Which country has this flag?', options:['China','Japan','South Korea','Taiwan'], ans:1 },
+        { flag:'🏖️', cat:'Geography', q:'Bali is an island in which country?', options:['Thailand','Malaysia','Indonesia','Philippines'], ans:2 },
+        { flag:'🗽', cat:'Landmark', q:'The Statue of Liberty is in which city?', options:['Washington D.C.','Los Angeles','Chicago','New York'], ans:3 },
+        { flag:'🇮🇳', cat:'Capital', q:"What is India's capital city?", options:['Mumbai','Delhi','Bangalore','Chennai'], ans:1 },
+        { flag:'🏔️', cat:'Geography', q:'Mount Everest is located in which mountain range?', options:['Andes','Alps','Rockies','Himalayas'], ans:3 },
+        { flag:'🇦🇺', cat:'Flag', q:'Which country has this flag?', options:['New Zealand','UK','Australia','Canada'], ans:2 },
+        { flag:'🌊', cat:'Geography', q:'Which is the largest ocean on Earth?', options:['Atlantic','Indian','Arctic','Pacific'], ans:3 },
+        { flag:'🇧🇷', cat:'Capital', q:"What is Brazil's capital city?", options:['São Paulo','Rio de Janeiro','Brasília','Salvador'], ans:2 },
+      ],
+      medium: [
+        { flag:'🇿🇦', cat:'Capital', q:'What is the capital of South Africa?', options:['Cape Town','Johannesburg','Pretoria','Durban'], ans:2 },
+        { flag:'🕌', cat:'Landmark', q:'The Taj Mahal is located in which Indian city?', options:['Delhi','Jaipur','Agra','Mumbai'], ans:2 },
+        { flag:'🇦🇪', cat:'Flag', q:'Which country has this flag?', options:['Saudi Arabia','Kuwait','Qatar','UAE'], ans:3 },
+        { flag:'🏰', cat:'Landmark', q:'Machu Picchu is located in which country?', options:['Chile','Bolivia','Colombia','Peru'], ans:3 },
+        { flag:'🇨🇭', cat:'Capital', q:'What is the capital of Switzerland?', options:['Zurich','Geneva','Bern','Basel'], ans:2 },
+        { flag:'🗺️', cat:'Geography', q:'Which country has the most UNESCO World Heritage Sites?', options:['France','China','Italy','Spain'], ans:2 },
+        { flag:'🇰🇷', cat:'Capital', q:'What is the capital of South Korea?', options:['Busan','Incheon','Seoul','Daegu'], ans:2 },
+        { flag:'🌋', cat:'Geography', q:'Which country has the most active volcanoes?', options:['Japan','USA','Indonesia','Iceland'], ans:2 },
+        { flag:'🇦🇷', cat:'Capital', q:'What is the capital of Argentina?', options:['Montevideo','Buenos Aires','Santiago','Lima'], ans:1 },
+        { flag:'🏛️', cat:'Landmark', q:'The Colosseum is located in which city?', options:['Athens','Madrid','Paris','Rome'], ans:3 },
+      ],
+      hard: [
+        { flag:'🇧🇹', cat:'Capital', q:'What is the capital of Bhutan?', options:['Paro','Punakha','Thimphu','Bumthang'], ans:2 },
+        { flag:'🌍', cat:'Geography', q:'Which African country has the most pyramids?', options:['Egypt','Libya','Sudan','Tunisia'], ans:2 },
+        { flag:'🇲🇻', cat:'Flag', q:'Which island nation has this flag?', options:['Seychelles','Comoros','Maldives','Mauritius'], ans:2 },
+        { flag:'🏔️', cat:'Geography', q:'Which country has the most land borders?', options:['Russia','China','Brazil','Germany'], ans:1 },
+        { flag:'🇸🇲', cat:'Capital', q:'What is the smallest country in the world by area?', options:['Monaco','Nauru','Vatican City','San Marino'], ans:2 },
+        { flag:'✈️', cat:'Aviation', q:'Which is the busiest airport in the world by passenger count?', options:['Heathrow','Hartsfield-Jackson','Dubai','Beijing Capital'], ans:1 },
+        { flag:'🇰🇿', cat:'Capital', q:'What is the capital of Kazakhstan?', options:['Almaty','Shymkent','Nur-Sultan','Aktobe'], ans:2 },
+        { flag:'🌊', cat:'Geography', q:'Which sea is the saltiest in the world?', options:['Red Sea','Caspian Sea','Dead Sea','Mediterranean'], ans:2 },
+        { flag:'🇵🇬', cat:'Capital', q:'What is the capital of Papua New Guinea?', options:['Suva','Honiara','Port Moresby','Apia'], ans:2 },
+        { flag:'🗺️', cat:'Geography', q:'How many countries are in South America?', options:['10','11','12','13'], ans:2 },
+      ]
+    };
+
+    let questions = [], currentQ = 0, score = 0, streak = 0, currentDiff = 'easy';
+
+    function startQuiz(diff) {
+      currentDiff = diff;
+      questions = [...allQuestions[diff]].sort(() => Math.random()-0.5);
+      currentQ = 0; score = 0; streak = 0;
+      document.getElementById('quizStart').style.display = 'none';
+      document.getElementById('quizResult').style.display = 'none';
+      document.getElementById('quizPlay').style.display = 'block';
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = questions[currentQ];
+      document.getElementById('qBar').style.width = ((currentQ/questions.length)*100)+'%';
+      document.getElementById('qNum').textContent = `${currentQ+1}/${questions.length}`;
+      document.getElementById('qFlag').textContent = q.flag;
+      document.getElementById('qCategory').textContent = q.cat;
+      document.getElementById('qQuestion').textContent = q.q;
+      document.getElementById('qFeedback').innerHTML = '';
+      document.getElementById('qNext').style.display = 'none';
+      document.getElementById('streakBadge').innerHTML = streak >= 2 ? `<span class="streak">🔥 ${streak} streak</span>` : '';
+
+      const opts = document.getElementById('qOptions');
+      opts.innerHTML = q.options.map((o,i) => `
+        <button class="option-btn" onclick="answer(${i})" id="opt-${i}">${o}</button>
+      `).join('');
+    }
+
+    function answer(idx) {
+      const q = questions[currentQ];
+      document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+      const btns = document.querySelectorAll('.option-btn');
+      btns[q.ans].classList.add('correct');
+
+      if (idx === q.ans) {
+        streak++;
+        const bonus = streak >= 3 ? 20 : 10;
+        score += bonus;
+        document.getElementById('qFeedback').innerHTML = `<div class="feedback-text feedback-correct">✅ Correct! ${streak>=3?`🔥 Streak bonus +${bonus} pts`:`+10 pts`}</div>`;
+      } else {
+        streak = 0;
+        btns[idx].classList.add('wrong');
+        document.getElementById('qFeedback').innerHTML = `<div class="feedback-text feedback-wrong">❌ Wrong! The correct answer is: <strong>${q.options[q.ans]}</strong></div>`;
+      }
+
+      document.getElementById('liveScore').textContent = score;
+      document.getElementById('qNext').style.display = 'block';
+    }
+
+    function nextQuestion() {
+      currentQ++;
+      if (currentQ >= questions.length) showResult();
+      else showQuestion();
+    }
+
+    function showResult() {
+      document.getElementById('quizPlay').style.display = 'none';
+      document.getElementById('quizResult').style.display = 'block';
+      const correct = Math.round(score / 10);
+      const pct = Math.round((correct / questions.length) * 100);
+      const emoji = pct >= 80 ? '🏆' : pct >= 60 ? '🌟' : pct >= 40 ? '😊' : '📚';
+      const msg = pct >= 80 ? 'Outstanding! You\'re a travel expert!' : pct >= 60 ? 'Great job! You know your geography!' : pct >= 40 ? 'Not bad! Keep exploring the world!' : 'Keep learning — the world is huge!';
+      document.getElementById('resultEmoji').textContent = emoji;
+      document.getElementById('resultScore').textContent = score + ' pts';
+      document.getElementById('resultLabel').textContent = `${correct} out of ${questions.length} correct`;
+      document.getElementById('resultMsg').textContent = msg;
+    }
+  </script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

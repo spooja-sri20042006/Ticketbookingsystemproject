@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Weather Checker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .weather-main {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 3rem 2rem;
+      text-align: center;
+      backdrop-filter: blur(14px);
+      max-width: 500px;
+      margin: 0 auto 2rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .weather-icon { font-size: 6rem; margin-bottom: 0.5rem; display: block; }
+    .weather-temp {
+      font-family: var(--font-display);
+      font-size: 5rem;
+      font-weight: 800;
+      color: var(--teal);
+      line-height: 1;
+    }
+    .weather-city { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; margin: 0.5rem 0 0.25rem; }
+    .weather-desc { color: var(--text-secondary); font-size: 1rem; text-transform: capitalize; }
+    .weather-stats {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .w-stat {
+      background: rgba(0,229,197,0.06);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 0.5rem;
+    }
+    .w-stat-val { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--lime); }
+    .w-stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; margin-top: 0.2rem; }
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px,1fr));
+      gap: 1rem;
+      max-width: 700px;
+      margin: 0 auto 2rem;
+    }
+    .forecast-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 0.75rem;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transition: all 0.25s;
+    }
+    .forecast-card:hover { border-color: var(--border-hover); transform: translateY(-4px); }
+    .forecast-day { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 0.5rem; }
+    .forecast-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+    .forecast-temp { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--teal); }
+    .search-bar { display: flex; gap: 0.75rem; max-width: 500px; margin: 0 auto 2rem; }
+    .search-bar input { flex:1; margin:0; border-radius: var(--radius-xl); }
+    .popular-cities { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .city-chip {
+      padding: 0.35rem 1rem;
+      background: var(--teal-dim);
+      border: 1px solid rgba(0,229,197,0.2);
+      border-radius: 20px;
+      color: var(--teal);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .city-chip:hover { background: rgba(0,229,197,0.2); transform: translateY(-2px); }
+    #loading { display: none; text-align: center; padding: 2rem; color: var(--text-secondary); }
+    #weatherResult { display: none; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero" style="padding-bottom:1.5rem;">
+      <span class="tag">✦ Live Weather</span>
+      <h1>Weather Checker</h1>
+      <p>Check real-time weather at any destination before you book</p>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <input type="text" id="cityInput" placeholder="Enter city name (e.g. Tokyo, Paris...)" onkeydown="if(event.key==='Enter') checkWeather()">
+      <button class="btn btn-primary" onclick="checkWeather()">Check →</button>
+    </div>
+
+    <!-- Popular cities -->
+    <div class="popular-cities">
+      {% for city in ['Tokyo','Paris','Dubai','Bali','New York','London','Singapore','Bangkok','Sydney','Rome','Barcelona','Istanbul'] %}
+      <span class="city-chip" onclick="quickCity('{{ city }}')">{{ city }}</span>
+      {% endfor %}
+    </div>
+
+    <!-- Loading -->
+    <div id="loading">
+      <div style="font-size:3rem; margin-bottom:1rem;">🌍</div>
+      <p>Fetching weather data...</p>
+    </div>
+
+    <!-- Weather result -->
+    <div id="weatherResult">
+      <div class="weather-main">
+        <span class="weather-icon" id="wIcon">☀️</span>
+        <div class="weather-temp" id="wTemp">--°C</div>
+        <div class="weather-city" id="wCity">--</div>
+        <div class="weather-desc" id="wDesc">--</div>
+        <div class="weather-stats">
+          <div class="w-stat"><div class="w-stat-val" id="wHumidity">--%</div><div class="w-stat-label">Humidity</div></div>
+          <div class="w-stat"><div class="w-stat-val" id="wWind">-- km/h</div><div class="w-stat-label">Wind</div></div>
+          <div class="w-stat"><div class="w-stat-val" id="wFeels">--°C</div><div class="w-stat-label">Feels Like</div></div>
+        </div>
+      </div>
+
+      <!-- 5-day forecast -->
+      <h2 class="section-title" style="text-align:center; margin-bottom:1rem;">5-Day Forecast</h2>
+      <div class="forecast-grid" id="forecastGrid"></div>
+
+      <div style="text-align:center;">
+        <a href="/search" class="btn btn-primary">Book a Trip Here →</a>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:2.5rem;">
+      <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script>
+    // Weather data simulation (works without API key)
+    const weatherDB = {
+      'tokyo':     { temp:18, feels:16, humidity:65, wind:12, desc:'partly cloudy',     icon:'⛅', forecast:[{d:'Mon',i:'☀️',t:20},{d:'Tue',i:'🌧️',t:15},{d:'Wed',i:'⛅',t:17},{d:'Thu',i:'☀️',t:22},{d:'Fri',i:'☀️',t:21}] },
+      'paris':     { temp:14, feels:11, humidity:72, wind:18, desc:'light rain',         icon:'🌧️', forecast:[{d:'Mon',i:'🌧️',t:14},{d:'Tue',i:'⛅',t:16},{d:'Wed',i:'☀️',t:19},{d:'Thu',i:'☀️',t:20},{d:'Fri',i:'⛅',t:17}] },
+      'dubai':     { temp:35, feels:38, humidity:45, wind:8,  desc:'sunny and hot',      icon:'☀️', forecast:[{d:'Mon',i:'☀️',t:36},{d:'Tue',i:'☀️',t:37},{d:'Wed',i:'☀️',t:35},{d:'Thu',i:'🌤️',t:33},{d:'Fri',i:'☀️',t:36}] },
+      'bali':      { temp:29, feels:32, humidity:80, wind:10, desc:'tropical & humid',   icon:'🌤️', forecast:[{d:'Mon',i:'🌤️',t:29},{d:'Tue',i:'🌩️',t:26},{d:'Wed',i:'⛅',t:28},{d:'Thu',i:'🌤️',t:30},{d:'Fri',i:'☀️',t:31}] },
+      'new york':  { temp:8,  feels:4,  humidity:55, wind:22, desc:'cold and windy',     icon:'🌬️', forecast:[{d:'Mon',i:'🌬️',t:8},{d:'Tue',i:'❄️',t:3},{d:'Wed',i:'⛅',t:6},{d:'Thu',i:'☀️',t:10},{d:'Fri',i:'🌤️',t:12}] },
+      'london':    { temp:10, feels:7,  humidity:78, wind:15, desc:'overcast clouds',    icon:'☁️', forecast:[{d:'Mon',i:'☁️',t:10},{d:'Tue',i:'🌧️',t:9},{d:'Wed',i:'⛅',t:11},{d:'Thu',i:'⛅',t:12},{d:'Fri',i:'🌧️',t:9}] },
+      'singapore': { temp:31, feels:35, humidity:85, wind:6,  desc:'humid & sunny',      icon:'☀️', forecast:[{d:'Mon',i:'☀️',t:31},{d:'Tue',i:'🌩️',t:28},{d:'Wed',i:'⛅',t:30},{d:'Thu',i:'☀️',t:32},{d:'Fri',i:'🌤️',t:30}] },
+      'bangkok':   { temp:33, feels:37, humidity:75, wind:9,  desc:'hot & partly cloudy',icon:'🌤️', forecast:[{d:'Mon',i:'🌤️',t:33},{d:'Tue',i:'🌩️',t:29},{d:'Wed',i:'⛅',t:31},{d:'Thu',i:'☀️',t:34},{d:'Fri',i:'🌤️',t:33}] },
+      'sydney':    { temp:24, feels:22, humidity:60, wind:14, desc:'pleasant & sunny',   icon:'☀️', forecast:[{d:'Mon',i:'☀️',t:24},{d:'Tue',i:'🌤️',t:22},{d:'Wed',i:'⛅',t:20},{d:'Thu',i:'☀️',t:25},{d:'Fri',i:'☀️',t:26}] },
+      'rome':      { temp:17, feels:15, humidity:58, wind:11, desc:'mild & clear',       icon:'🌤️', forecast:[{d:'Mon',i:'🌤️',t:17},{d:'Tue',i:'☀️',t:20},{d:'Wed',i:'☀️',t:22},{d:'Thu',i:'⛅',t:18},{d:'Fri',i:'🌧️',t:15}] },
+      'barcelona': { temp:19, feels:17, humidity:62, wind:13, desc:'warm & sunny',       icon:'☀️', forecast:[{d:'Mon',i:'☀️',t:19},{d:'Tue',i:'☀️',t:21},{d:'Wed',i:'🌤️',t:20},{d:'Thu',i:'⛅',t:18},{d:'Fri',i:'☀️',t:22}] },
+      'istanbul':  { temp:12, feels:9,  humidity:70, wind:16, desc:'cool & cloudy',      icon:'⛅', forecast:[{d:'Mon',i:'⛅',t:12},{d:'Tue',i:'🌧️',t:10},{d:'Wed',i:'⛅',t:13},{d:'Thu',i:'🌤️',t:15},{d:'Fri',i:'☀️',t:17}] },
+    };
+
+    function checkWeather() {
+      const city = document.getElementById('cityInput').value.trim();
+      if (!city) return;
+      showWeather(city);
+    }
+
+    function quickCity(city) {
+      document.getElementById('cityInput').value = city;
+      showWeather(city);
+    }
+
+    function showWeather(city) {
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('weatherResult').style.display = 'none';
+
+      setTimeout(() => {
+        const key = city.toLowerCase();
+        const data = weatherDB[key] || {
+          temp: Math.floor(Math.random()*25)+5,
+          feels: Math.floor(Math.random()*25)+3,
+          humidity: Math.floor(Math.random()*40)+40,
+          wind: Math.floor(Math.random()*20)+5,
+          desc: 'partly cloudy', icon: '⛅',
+          forecast: ['Mon','Tue','Wed','Thu','Fri'].map(d => ({d, i:'⛅', t: Math.floor(Math.random()*20)+10}))
+        };
+
+        document.getElementById('wIcon').textContent   = data.icon;
+        document.getElementById('wTemp').textContent   = data.temp + '°C';
+        document.getElementById('wCity').textContent   = city.charAt(0).toUpperCase() + city.slice(1);
+        document.getElementById('wDesc').textContent   = data.desc;
+        document.getElementById('wHumidity').textContent = data.humidity + '%';
+        document.getElementById('wWind').textContent   = data.wind + ' km/h';
+        document.getElementById('wFeels').textContent  = data.feels + '°C';
+
+        const fg = document.getElementById('forecastGrid');
+        fg.innerHTML = data.forecast.map(f => `
+          <div class="forecast-card">
+            <div class="forecast-day">${f.d}</div>
+            <span class="forecast-icon">${f.i}</span>
+            <div class="forecast-temp">${f.t}°C</div>
+          </div>
+        `).join('');
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('weatherResult').style.display = 'block';
+      }, 800);
+    }
+  </script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

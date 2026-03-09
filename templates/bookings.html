@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — My Bookings</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/search" class="btn btn-secondary">Search</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero">
+      <span class="tag">✦ Your Trips</span>
+      <h1>My Bookings</h1>
+      <p>Track and manage all your upcoming adventures</p>
+    </div>
+
+    {% if bookings %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>🛫 From</th>
+            <th>🛬 To</th>
+            <th>📅 Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in bookings %}
+          <tr>
+            <td>{{ booking.source }}</td>
+            <td>{{ booking.destination }}</td>
+            <td>{{ booking.date }}</td>
+            <td><span class="badge badge-success">Confirmed</span></td>
+            <td><a href="#" class="btn btn-secondary" style="padding: 0.35rem 0.9rem; font-size: 0.8rem;">Details</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% else %}
+    <div class="info-box" style="text-align: center; padding: 3.5rem 2rem; margin: 2rem 0;">
+      <div style="font-size: 3.5rem; margin-bottom: 1rem;">🗺️</div>
+      <h2 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 0.75rem;">No Bookings Yet</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1.75rem;">Your next adventure awaits. Start planning now!</p>
+      <a href="/search" class="btn btn-primary">Search Destinations</a>
+    </div>
+    {% endif %}
+
+    <div class="divider"></div>
+
+    <div class="features">
+      <div class="feature-card">
+        <span class="feature-icon">🎫</span>
+        <h3>Digital Tickets</h3>
+        <p>E-tickets delivered instantly to your inbox</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🏨</span>
+        <h3>Hotel Deals</h3>
+        <p>Book accommodation with exclusive member rates</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🚗</span>
+        <h3>Car Rentals</h3>
+        <p>Find the best rental options at every destination</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📞</span>
+        <h3>24/7 Support</h3>
+        <p>Our team is always here when you need help</p>
+      </div>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

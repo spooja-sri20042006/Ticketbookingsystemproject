@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Travel Tips</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero">
+      <span class="tag">✦ Expert Knowledge</span>
+      <h1>Travel Tips & Guides</h1>
+      <p>Learn from experienced travelers and make the most of every journey</p>
+    </div>
+
+    <!-- Tips Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.75rem; margin: 2rem 0;">
+      {% for tip in tips %}
+      <div class="tip-card">
+        <div style="font-size: 2.8rem; text-align: center; margin-bottom: 1rem;">{{ tip.icon }}</div>
+        <h3 style="font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; text-align: center; margin-bottom: 0.75rem; color: var(--teal);">{{ tip.title }}</h3>
+        <p style="color: var(--text-secondary); text-align: center; line-height: 1.6; font-size: 0.92rem;">{{ tip.description }}</p>
+        <button class="btn btn-secondary" style="width: 100%; margin-top: 1.5rem;">Read More →</button>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Featured Article -->
+    <div class="info-box" style="margin: 2rem 0;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center;">
+        <div>
+          <span class="tag" style="margin-bottom: 1rem; display: inline-block;">✦ Featured</span>
+          <h2 style="font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; margin-bottom: 1rem; letter-spacing: -0.5px;">
+            How to Travel Smart on a Budget
+          </h2>
+          <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1.5rem; font-size: 0.95rem;">
+            Learn proven strategies from budget travelers worldwide. Find cheap flights, affordable stays, and experience destinations without breaking the bank.
+          </p>
+          <button class="btn btn-primary">Read Full Article →</button>
+        </div>
+        <div style="background: linear-gradient(135deg, var(--teal-dim), var(--lime-dim)); border: 1px solid var(--border); border-radius: var(--radius-lg); height: 260px; display: flex; align-items: center; justify-content: center;">
+          <div style="font-size: 4rem;">💰</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <h2 class="section-title" style="text-align: center; margin: 3rem 0 1.5rem;">Browse by Category</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+      {% for cat in [('🏖️','Beach Destinations','45'),('🏔️','Mountain Adventures','32'),('🍜','Food & Cuisine','28'),('🛫','Travel Hacks','56'),('🗺️','Cultural Insights','38'),('🏨','Accommodation','31')] %}
+      <a href="#" class="feature-card" style="text-decoration: none; color: inherit;">
+        <span class="feature-icon">{{ cat[0] }}</span>
+        <h3>{{ cat[1] }}</h3>
+        <p style="color: var(--text-muted);">{{ cat[2] }} articles</p>
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Pro Tips -->
+    <div class="info-box" style="margin: 2rem 0;">
+      <h2 class="section-title" style="font-size: 1.3rem; margin-bottom: 1.5rem;">💡 Pro Tips from Our Community</h2>
+      <div class="pro-tip">
+        <h4>Book flights on Tuesday for the best prices</h4>
+        <p>Airlines often release sales on Tuesdays — compare fares mid-week.</p>
+      </div>
+      <div class="pro-tip lime">
+        <h4>Travel during shoulder seasons for better deals</h4>
+        <p>Avoid peak season to save money and experience fewer crowds.</p>
+      </div>
+      <div class="pro-tip coral">
+        <h4>Use public transportation at your destination</h4>
+        <p>Cheaper than taxis and gives you real local experience.</p>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 2.5rem;">
+      <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

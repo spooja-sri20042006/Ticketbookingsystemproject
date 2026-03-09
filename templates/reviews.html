@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Reviews</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .review-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+      margin-bottom: 1.25rem;
+    }
+    .review-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+    }
+    .stars { color: var(--gold); font-size: 1.1rem; letter-spacing: 2px; }
+    .reviewer {
+      display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;
+    }
+    .reviewer-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal-dim), var(--lime-dim));
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .reviewer-name { font-weight: 600; font-size: 0.95rem; }
+    .reviewer-date { font-size: 0.78rem; color: var(--text-muted); }
+    .dest-tag {
+      display: inline-block;
+      padding: 0.2rem 0.7rem;
+      background: var(--teal-dim);
+      border: 1px solid rgba(0,229,197,0.2);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--teal);
+      margin-bottom: 0.75rem;
+    }
+    .rating-bar { margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.75rem; }
+    .rating-bar-label { font-size: 0.82rem; color: var(--text-secondary); width: 50px; }
+    .rating-bar-track {
+      flex: 1; height: 6px; background: rgba(255,255,255,0.08);
+      border-radius: 3px; overflow: hidden;
+    }
+    .rating-bar-fill {
+      height: 100%; background: linear-gradient(90deg, var(--teal), var(--lime));
+      border-radius: 3px; transition: width 1s ease;
+    }
+    .rating-bar-val { font-size: 0.82rem; color: var(--text-muted); width: 25px; text-align: right; }
+    .write-review { background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; backdrop-filter: blur(12px); }
+    .star-select { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
+    .star-btn { font-size: 1.8rem; cursor: pointer; opacity: 0.3; transition: all 0.2s; background: none; border: none; }
+    .star-btn.active { opacity: 1; transform: scale(1.15); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero" style="padding-bottom: 1.5rem;">
+      <span class="tag">✦ Community</span>
+      <h1>Reviews & Ratings</h1>
+      <p>Real experiences from real travelers around the world</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 320px; gap: 2rem; align-items: start;">
+      
+      <!-- Reviews list -->
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+          <h2 class="section-title" style="margin:0;">Latest Reviews</h2>
+          <select style="width:auto; padding:0.5rem 1rem;" id="filterDest">
+            <option value="">All Destinations</option>
+            <option>Paris</option><option>Tokyo</option><option>Dubai</option>
+            <option>Bali</option><option>Barcelona</option>
+          </select>
+        </div>
+        <div id="reviewsList"></div>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <!-- Overall rating -->
+        <div class="info-box" style="margin-bottom:1.5rem; text-align:center;">
+          <p style="font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:0.5rem;">Overall Rating</p>
+          <p style="font-family:var(--font-display); font-size:4rem; font-weight:800; color:var(--gold); line-height:1;">4.8</p>
+          <div class="stars">★★★★★</div>
+          <p style="color:var(--text-muted); font-size:0.82rem; margin-top:0.4rem;">Based on 1,247 reviews</p>
+          <div class="divider"></div>
+          <div style="text-align:left;">
+            <div class="rating-bar"><span class="rating-bar-label">5 ★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:78%"></div></div><span class="rating-bar-val">78%</span></div>
+            <div class="rating-bar"><span class="rating-bar-label">4 ★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:15%"></div></div><span class="rating-bar-val">15%</span></div>
+            <div class="rating-bar"><span class="rating-bar-label">3 ★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:5%"></div></div><span class="rating-bar-val">5%</span></div>
+            <div class="rating-bar"><span class="rating-bar-label">2 ★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:1%"></div></div><span class="rating-bar-val">1%</span></div>
+            <div class="rating-bar"><span class="rating-bar-label">1 ★</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:1%"></div></div><span class="rating-bar-val">1%</span></div>
+          </div>
+        </div>
+
+        <!-- Write review -->
+        <div class="write-review">
+          <h3 style="font-family:var(--font-display); font-size:1.1rem; margin-bottom:1.25rem; color:var(--teal);">✍️ Write a Review</h3>
+          <div class="form-group">
+            <label>Destination</label>
+            <select id="reviewDest">
+              <option>Paris</option><option>Tokyo</option><option>Dubai</option>
+              <option>Bali</option><option>Barcelona</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Your Rating</label>
+            <div class="star-select" id="starSelect">
+              <button class="star-btn" data-val="1">★</button>
+              <button class="star-btn" data-val="2">★</button>
+              <button class="star-btn" data-val="3">★</button>
+              <button class="star-btn" data-val="4">★</button>
+              <button class="star-btn" data-val="5">★</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Your Review</label>
+            <textarea id="reviewText" rows="4" placeholder="Share your experience..."></textarea>
+          </div>
+          <button class="btn btn-primary" style="width:100%;" onclick="submitReview()">Submit Review</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:2rem;">
+      <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script>
+    const sampleReviews = [
+      { name:"Priya S.", dest:"Paris", rating:5, text:"Absolutely magical! The Eiffel Tower at night was breathtaking. TravelGo made the whole booking process seamless.", date:"2 days ago", avatar:"👩" },
+      { name:"Rahul M.", dest:"Tokyo", rating:5, text:"Tokyo exceeded all expectations. Street food, temples, and the bullet train — incredible. Booking was super easy!", date:"5 days ago", avatar:"👨" },
+      { name:"Sara K.", dest:"Bali", rating:4, text:"Bali is paradise on earth. Rice terraces and temples everywhere. Minor issue with hotel check-in but TravelGo support resolved it fast.", date:"1 week ago", avatar:"👩‍🦱" },
+      { name:"Ahmed R.", dest:"Dubai", rating:5, text:"Dubai is unlike anything I've ever seen. The desert safari was the highlight. Great deals on TravelGo!", date:"2 weeks ago", avatar:"👨‍💼" },
+      { name:"Meera T.", dest:"Barcelona", rating:5, text:"Gaudi's architecture is mind-blowing. The food scene is incredible. Would visit again in a heartbeat!", date:"3 weeks ago", avatar:"👩‍🎨" },
+    ];
+
+    let reviews = [...sampleReviews];
+    let selectedRating = 0;
+
+    function renderReviews(filter = '') {
+      const list = document.getElementById('reviewsList');
+      const filtered = filter ? reviews.filter(r => r.dest === filter) : reviews;
+      list.innerHTML = filtered.map(r => `
+        <div class="review-card">
+          <div class="reviewer">
+            <div class="reviewer-avatar">${r.avatar}</div>
+            <div>
+              <p class="reviewer-name">${r.name}</p>
+              <p class="reviewer-date">${r.date}</p>
+            </div>
+            <div style="margin-left:auto; text-align:right;">
+              <div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+            </div>
+          </div>
+          <span class="dest-tag">✈️ ${r.dest}</span>
+          <p style="color:var(--text-secondary); font-size:0.92rem; line-height:1.6;">${r.text}</p>
+        </div>
+      `).join('');
+    }
+
+    // Star selection
+    document.getElementById('starSelect').querySelectorAll('.star-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedRating = parseInt(btn.dataset.val);
+        document.querySelectorAll('.star-btn').forEach((b,i) => {
+          b.classList.toggle('active', i < selectedRating);
+        });
+      });
+    });
+
+    function submitReview() {
+      const dest = document.getElementById('reviewDest').value;
+      const text = document.getElementById('reviewText').value.trim();
+      if (!text || !selectedRating) {
+        alert('Please add a rating and review text!');
+        return;
+      }
+      reviews.unshift({ name:"You", dest, rating:selectedRating, text, date:"Just now", avatar:"😊" });
+      renderReviews();
+      document.getElementById('reviewText').value = '';
+      selectedRating = 0;
+      document.querySelectorAll('.star-btn').forEach(b => b.classList.remove('active'));
+    }
+
+    document.getElementById('filterDest').addEventListener('change', e => renderReviews(e.target.value));
+
+    renderReviews();
+  </script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

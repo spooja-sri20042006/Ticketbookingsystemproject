@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Explore the World</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/login" class="btn btn-secondary">Login</a>
+      <a href="/register" class="btn btn-primary">Get Started</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero">
+      <span class="tag">✦ The Future of Travel Booking</span>
+      <h1>Explore the World<br>Like Never Before</h1>
+      <p>Smart searches. Real deals. Unforgettable journeys. TravelGo is your AI-powered travel companion.</p>
+      <div class="btn-group">
+        <a href="/login" class="btn btn-primary">Start Exploring</a>
+        <a href="/register" class="btn btn-secondary">Create Account</a>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="dashboard-grid" style="margin-bottom: 3rem;">
+      <div class="stat-card">
+        <div class="stat-number">10K+</div>
+        <div class="stat-label">Destinations</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">98%</div>
+        <div class="stat-label">Satisfaction Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">500K</div>
+        <div class="stat-label">Happy Travelers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">24/7</div>
+        <div class="stat-label">Support</div>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature-card">
+        <span class="feature-icon">🔍</span>
+        <h3>Smart Search</h3>
+        <p>Find perfect destinations with intelligent, personalized recommendations</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">💳</span>
+        <h3>Secure Booking</h3>
+        <p>Bank-grade encrypted transactions for complete peace of mind</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⭐</span>
+        <h3>Verified Reviews</h3>
+        <p>Genuine reviews from millions of travelers worldwide</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🛫</span>
+        <h3>Best Deals</h3>
+        <p>Exclusive offers and discounts on every single booking</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

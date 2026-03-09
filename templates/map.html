@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Explore Map</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    #map {
+      height: 520px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+    .leaflet-container { background: #0a1628; }
+    .dest-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .dest-chip {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      backdrop-filter: blur(10px);
+    }
+    .dest-chip:hover {
+      border-color: var(--teal);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0,229,197,0.15);
+    }
+    .dest-chip .flag { font-size: 2rem; margin-bottom: 0.4rem; display: block; }
+    .dest-chip h4 { font-family: var(--font-display); font-size: 0.95rem; color: var(--teal); margin-bottom: 0.2rem; }
+    .dest-chip p { font-size: 0.78rem; color: var(--text-muted); }
+    .map-info {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+      backdrop-filter: blur(12px);
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero" style="padding-bottom: 1.5rem;">
+      <span class="tag">✦ Interactive</span>
+      <h1>Explore the World Map</h1>
+      <p>Click any destination to explore and book instantly</p>
+    </div>
+
+    <div class="map-info">
+      <span style="font-size:1.5rem;">🗺️</span>
+      <div>
+        <p style="font-size:0.9rem; color: var(--text-secondary);">Click on map markers to view destination details. Use the chips below to jump to popular cities.</p>
+      </div>
+      <a href="/search" class="btn btn-primary" style="margin-left:auto;">Book a Trip →</a>
+    </div>
+
+    <div id="map"></div>
+
+    <h2 class="section-title" style="margin-top:2rem;">Popular Destinations</h2>
+    <div class="dest-grid" id="destGrid"></div>
+
+    <div style="text-align:center; margin-top:2rem;">
+      <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const destinations = [
+      { name: "Tokyo",      country: "Japan",       flag: "🇯🇵", lat: 35.6762, lng: 139.6503, desc: "City of contrasts — neon & tradition", price: "$1,200" },
+      { name: "Paris",      country: "France",      flag: "🇫🇷", lat: 48.8566, lng: 2.3522,   desc: "The City of Light & Romance",         price: "$850"  },
+      { name: "Dubai",      country: "UAE",         flag: "🇦🇪", lat: 25.2048, lng: 55.2708,  desc: "Luxury, skyscrapers & desert dunes",  price: "$650"  },
+      { name: "Bali",       country: "Indonesia",   flag: "🇮🇩", lat: -8.3405, lng: 115.0920, desc: "Temples, rice fields & beaches",       price: "$480"  },
+      { name: "New York",   country: "USA",         flag: "🇺🇸", lat: 40.7128, lng: -74.0060, desc: "The city that never sleeps",           price: "$950"  },
+      { name: "Barcelona",  country: "Spain",       flag: "🇪🇸", lat: 41.3851, lng: 2.1734,   desc: "Art, architecture & beaches",         price: "$780"  },
+      { name: "Sydney",     country: "Australia",   flag: "🇦🇺", lat: -33.8688, lng: 151.2093,desc: "Harbour, Opera & sunshine",            price: "$1,100"},
+      { name: "Singapore",  country: "Singapore",   flag: "🇸🇬", lat: 1.3521,  lng: 103.8198, desc: "Garden city of Asia",                 price: "$700"  },
+      { name: "Istanbul",   country: "Turkey",      flag: "🇹🇷", lat: 41.0082, lng: 28.9784,  desc: "Where East meets West",               price: "$560"  },
+      { name: "Maldives",   country: "Maldives",    flag: "🇲🇻", lat: 3.2028,  lng: 73.2207,  desc: "Crystal waters & overwater bungalows",price: "$1,500"},
+      { name: "Rome",       country: "Italy",       flag: "🇮🇹", lat: 41.9028, lng: 12.4964,  desc: "Eternal city of history & food",      price: "$820"  },
+      { name: "Bangkok",    country: "Thailand",    flag: "🇹🇭", lat: 13.7563, lng: 100.5018, desc: "Street food, temples & nightlife",    price: "$420"  },
+    ];
+
+    // Init map
+    const map = L.map('map', { zoomControl: true }).setView([20, 10], 2);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CARTO',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Custom marker icon
+    function makeIcon(flag) {
+      return L.divIcon({
+        className: '',
+        html: `<div style="
+          background: rgba(0,229,197,0.15);
+          border: 2px solid #00e5c5;
+          border-radius: 50%;
+          width: 36px; height: 36px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1.1rem;
+          box-shadow: 0 0 12px rgba(0,229,197,0.4);
+          cursor: pointer;
+        ">${flag}</div>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      });
+    }
+
+    destinations.forEach(d => {
+      const marker = L.marker([d.lat, d.lng], { icon: makeIcon(d.flag) }).addTo(map);
+      marker.bindPopup(`
+        <div style="font-family: 'DM Sans', sans-serif; min-width: 160px;">
+          <div style="font-size: 1.8rem; text-align:center; margin-bottom:0.5rem;">${d.flag}</div>
+          <h3 style="margin:0 0 0.3rem; color:#00e5c5; font-size:1.1rem;">${d.name}</h3>
+          <p style="margin:0 0 0.3rem; color:#aaa; font-size:0.82rem;">${d.desc}</p>
+          <p style="margin:0; color:#b8ff57; font-weight:700;">From ${d.price}</p>
+          <a href="/search" style="display:block; margin-top:0.75rem; background:#00e5c5; color:#030b12; padding:0.4rem; border-radius:8px; text-align:center; text-decoration:none; font-weight:700; font-size:0.82rem;">Book Now</a>
+        </div>
+      `, { className: 'custom-popup' });
+    });
+
+    // Destination chips
+    const grid = document.getElementById('destGrid');
+    destinations.forEach(d => {
+      const chip = document.createElement('div');
+      chip.className = 'dest-chip';
+      chip.innerHTML = `<span class="flag">${d.flag}</span><h4>${d.name}</h4><p>${d.country}</p><p style="color:var(--teal);font-weight:700;margin-top:0.3rem;">${d.price}</p>`;
+      chip.onclick = () => {
+        map.flyTo([d.lat, d.lng], 10, { duration: 1.5 });
+      };
+      grid.appendChild(chip);
+    });
+  </script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

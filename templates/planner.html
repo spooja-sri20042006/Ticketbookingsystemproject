@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Trip Planner</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .planner-layout { display: grid; grid-template-columns: 320px 1fr; gap: 1.75rem; margin: 2rem 0; }
+    @media(max-width:768px){ .planner-layout { grid-template-columns: 1fr; } }
+    .day-tab {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.1rem;
+      margin-bottom: 0.6rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .day-tab:hover, .day-tab.active {
+      border-color: var(--teal);
+      background: var(--teal-dim);
+    }
+    .day-tab.active { box-shadow: 0 0 15px var(--teal-glow); }
+    .day-num { font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--teal); }
+    .day-label { font-size: 0.88rem; color: var(--text-secondary); }
+    .activity-item {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      display: flex; align-items: center; gap: 1rem;
+      transition: all 0.25s; cursor: grab;
+    }
+    .activity-item:hover { border-color: var(--border-hover); }
+    .activity-time { font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; color: var(--teal); min-width: 55px; }
+    .activity-icon { font-size: 1.4rem; }
+    .activity-name { flex: 1; font-size: 0.92rem; }
+    .activity-del { background: none; border: none; color: var(--coral); cursor: pointer; font-size: 1rem; opacity: 0.5; transition: opacity 0.2s; padding: 0.2rem; }
+    .activity-del:hover { opacity: 1; }
+    .add-activity-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem; }
+    .add-activity-row input, .add-activity-row select { margin: 0; flex: 1; min-width: 100px; }
+    .trip-meta { background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.25rem; }
+    .progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin-top: 0.5rem; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--lime)); border-radius: 3px; transition: width 0.5s ease; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero" style="padding-bottom:1.5rem;">
+      <span class="tag">✦ Plan Smarter</span>
+      <h1>Trip Planner</h1>
+      <p>Build your perfect day-by-day travel itinerary</p>
+    </div>
+
+    <!-- Trip Setup -->
+    <div class="info-box" style="margin-bottom:1.75rem;">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; align-items:end;">
+        <div class="form-group" style="margin:0;">
+          <label>Trip Name</label>
+          <input type="text" id="tripName" placeholder="e.g. Japan Spring 2026" oninput="updateMeta()">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Destination</label>
+          <input type="text" id="tripDest" placeholder="e.g. Tokyo, Japan" oninput="updateMeta()">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Start Date</label>
+          <input type="date" id="startDate" oninput="updateMeta()">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Number of Days</label>
+          <input type="number" id="numDays" value="5" min="1" max="30" oninput="rebuildDays()">
+        </div>
+        <button class="btn btn-primary" onclick="rebuildDays()">Build Itinerary</button>
+      </div>
+    </div>
+
+    <div class="planner-layout">
+      <!-- Day sidebar -->
+      <div>
+        <div class="trip-meta">
+          <p style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:0.25rem;">Trip Progress</p>
+          <p id="metaTitle" style="font-family:var(--font-display);font-size:1rem;font-weight:700;">My Trip</p>
+          <p id="metaDest" style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.5rem;">Set destination above</p>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+          <p id="progressText" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem;">0 activities planned</p>
+        </div>
+        <div id="dayTabs"></div>
+        <button class="btn btn-secondary" style="width:100%; margin-top:0.75rem;" onclick="exportPlan()">📥 Export Plan</button>
+      </div>
+
+      <!-- Day detail -->
+      <div>
+        <div id="dayDetail">
+          <div class="info-box" style="text-align:center; padding:3rem;">
+            <div style="font-size:3rem;margin-bottom:1rem;">📅</div>
+            <p style="color:var(--text-secondary);">Click a day on the left to plan activities</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:1rem;">
+      <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script>
+    let days = {};
+    let activeDay = null;
+    const activityIcons = { morning:'🌅', afternoon:'☀️', evening:'🌆', night:'🌙', food:'🍜', transport:'🚌', hotel:'🏨', sightseeing:'📸', shopping:'🛍️', activity:'🎯' };
+
+    function rebuildDays() {
+      const n = parseInt(document.getElementById('numDays').value) || 5;
+      const start = document.getElementById('startDate').value;
+      const tabs = document.getElementById('dayTabs');
+      tabs.innerHTML = '';
+      for (let i = 1; i <= n; i++) {
+        if (!days[i]) days[i] = [];
+        const div = document.createElement('div');
+        div.className = 'day-tab' + (activeDay === i ? ' active' : '');
+        div.id = `daytab-${i}`;
+        let dateStr = '';
+        if (start) {
+          const d = new Date(start);
+          d.setDate(d.getDate() + i - 1);
+          dateStr = d.toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric'});
+        }
+        div.innerHTML = `<div><div class="day-num">Day ${i}</div><div class="day-label">${dateStr || 'Date TBD'}</div></div><span style="color:var(--text-muted);font-size:0.78rem;">${days[i].length} act.</span>`;
+        div.onclick = () => selectDay(i);
+        tabs.appendChild(div);
+      }
+      if (activeDay) selectDay(activeDay);
+      updateProgress();
+    }
+
+    function selectDay(n) {
+      activeDay = n;
+      document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+      const tab = document.getElementById(`daytab-${n}`);
+      if (tab) tab.classList.add('active');
+      renderDayDetail(n);
+    }
+
+    function renderDayDetail(n) {
+      const acts = days[n] || [];
+      document.getElementById('dayDetail').innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+          <h2 style="font-family:var(--font-display);font-size:1.3rem;font-weight:800;">Day ${n} Itinerary</h2>
+          <span style="font-size:0.82rem;color:var(--text-muted);">${acts.length} activities</span>
+        </div>
+        ${acts.length ? acts.map((a,i) => `
+          <div class="activity-item">
+            <span class="activity-time">${a.time}</span>
+            <span class="activity-icon">${activityIcons[a.type]||'📍'}</span>
+            <span class="activity-name">${a.name}</span>
+            <button class="activity-del" onclick="removeActivity(${n},${i})">✕</button>
+          </div>
+        `).join('') : `<div class="info-box" style="text-align:center;padding:2rem;margin-bottom:1rem;"><p style="color:var(--text-secondary);">No activities yet. Add one below!</p></div>`}
+        <div style="background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:1.25rem;margin-top:1rem;">
+          <p style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:0.75rem;">Add Activity</p>
+          <div class="add-activity-row">
+            <input type="time" id="actTime" value="09:00" style="max-width:110px;">
+            <select id="actType" style="max-width:140px;">
+              ${Object.keys(activityIcons).map(k=>`<option value="${k}">${activityIcons[k]} ${k.charAt(0).toUpperCase()+k.slice(1)}</option>`).join('')}
+            </select>
+            <input type="text" id="actName" placeholder="Activity name...">
+            <button class="btn btn-primary" onclick="addActivity(${n})" style="white-space:nowrap;">Add +</button>
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;">Quick Add:</p>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+            ${['Hotel Check-in','Airport Transfer','City Tour','Local Lunch','Museum Visit','Dinner Reservation','Shopping','Beach Time','Temple Visit','Night Market'].map(s=>`<button class="quick-btn" onclick="quickAdd(${n},'${s}')" style="background:var(--bg-glass);border:1px solid var(--border);border-radius:20px;padding:0.3rem 0.8rem;color:var(--text-secondary);font-size:0.78rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">${s}</button>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function addActivity(day) {
+      const time = document.getElementById('actTime').value;
+      const type = document.getElementById('actType').value;
+      const name = document.getElementById('actName').value.trim();
+      if (!name) return;
+      days[day].push({ time, type, name });
+      days[day].sort((a,b) => a.time.localeCompare(b.time));
+      document.getElementById('actName').value = '';
+      renderDayDetail(day);
+      rebuildDays();
+      updateProgress();
+    }
+
+    function quickAdd(day, name) {
+      const hour = 9 + days[day].length;
+      const time = `${String(hour).padStart(2,'0')}:00`;
+      days[day].push({ time, type: 'sightseeing', name });
+      renderDayDetail(day);
+      rebuildDays();
+      updateProgress();
+    }
+
+    function removeActivity(day, idx) {
+      days[day].splice(idx, 1);
+      renderDayDetail(day);
+      rebuildDays();
+      updateProgress();
+    }
+
+    function updateMeta() {
+      const name = document.getElementById('tripName').value || 'My Trip';
+      const dest = document.getElementById('tripDest').value || 'Set destination above';
+      document.getElementById('metaTitle').textContent = name;
+      document.getElementById('metaDest').textContent = dest;
+    }
+
+    function updateProgress() {
+      const total = Object.values(days).reduce((s,d)=>s+d.length,0);
+      const numDays = parseInt(document.getElementById('numDays').value)||5;
+      const target = numDays * 4;
+      const pct = Math.min(100, Math.round((total/target)*100));
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressText').textContent = `${total} activities planned`;
+    }
+
+    function exportPlan() {
+      const name = document.getElementById('tripName').value || 'My Trip';
+      let text = `✦ ${name} — TravelGo Itinerary\n${'='.repeat(40)}\n\n`;
+      Object.entries(days).forEach(([day, acts]) => {
+        text += `Day ${day}:\n`;
+        if (acts.length) acts.forEach(a => text += `  ${a.time} — ${a.name}\n`);
+        else text += `  (No activities planned)\n`;
+        text += '\n';
+      });
+      const blob = new Blob([text], {type:'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${name.replace(/ /g,'_')}_itinerary.txt`;
+      a.click();
+    }
+
+    rebuildDays();
+  </script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

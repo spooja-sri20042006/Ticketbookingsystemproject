@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TravelGo — Photo Gallery</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .gallery-filters { display:flex; flex-wrap:wrap; gap:0.6rem; justify-content:center; margin-bottom:2rem; }
+    .filter-btn {
+      padding:0.4rem 1.1rem; border-radius:20px; font-size:0.82rem; cursor:pointer;
+      background:var(--bg-glass); border:1px solid var(--border); color:var(--text-secondary);
+      transition:all 0.2s; font-family:var(--font-body);
+    }
+    .filter-btn:hover, .filter-btn.active { background:var(--teal-dim); border-color:rgba(0,229,197,0.4); color:var(--teal); }
+    .gallery-grid {
+      columns: 3; column-gap: 1.25rem;
+    }
+    @media(max-width:900px){ .gallery-grid { columns:2; } }
+    @media(max-width:500px){ .gallery-grid { columns:1; } }
+    .gallery-item {
+      break-inside: avoid;
+      margin-bottom: 1.25rem;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .gallery-item:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,229,197,0.15); border-color: var(--border-hover); }
+    .gallery-img {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--bg-layer2), var(--bg-layer1));
+      font-size: 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .gallery-img::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--gradient);
+      opacity: 0.3;
+    }
+    .gallery-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(3,11,18,0.9));
+      padding: 1.5rem 1rem 0.85rem;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .gallery-item:hover .gallery-overlay { opacity: 1; }
+    .gallery-overlay h4 { font-family:var(--font-display); font-size:0.95rem; font-weight:700; color:var(--teal); }
+    .gallery-overlay p { font-size:0.78rem; color:var(--text-secondary); margin-top:0.15rem; }
+    .lightbox {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(3,11,18,0.95);
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px);
+    }
+    .lightbox.open { display: flex; }
+    .lightbox-inner {
+      max-width: 600px; width: 90%; text-align: center;
+      animation: fadeUp 0.3s ease both;
+    }
+    .lightbox-emoji { font-size: 10rem; margin-bottom: 1rem; display: block; }
+    .lightbox-close {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      background: var(--bg-glass); border: 1px solid var(--border);
+      border-radius: 50%; width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1.2rem; color: var(--text-primary);
+      transition: all 0.2s;
+    }
+    .lightbox-close:hover { border-color:var(--teal); color:var(--teal); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">✦ TravelGo</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+      <a href="/logout" class="btn btn-secondary">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="hero" style="padding-bottom:1.5rem;">
+      <span class="tag">✦ Visual Journey</span>
+      <h1>Destination Gallery</h1>
+      <p>Explore stunning destinations through our curated photo collection</p>
+    </div>
+
+    <div class="gallery-filters" id="filters"></div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+
+    <div style="text-align:center;margin-top:2rem;">
+      <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="document.getElementById('lightbox').classList.remove('open')">✕</button>
+    <div class="lightbox-inner">
+      <span class="lightbox-emoji" id="lbEmoji"></span>
+      <h2 id="lbTitle" style="font-family:var(--font-display);font-size:1.8rem;font-weight:800;margin-bottom:0.5rem;"></h2>
+      <p id="lbCountry" style="color:var(--teal);margin-bottom:0.5rem;"></p>
+      <p id="lbDesc" style="color:var(--text-secondary);line-height:1.7;margin-bottom:1.5rem;"></p>
+      <a href="/search" class="btn btn-primary">Book Trip Here →</a>
+    </div>
+  </div>
+
+  <script>
+    const photos = [
+      { cat:'Asia',    emoji:'🗼', gradient:'135deg,#1a0533,#0d2137', title:'Tokyo Skyline',      country:'Japan',     desc:'The neon-lit streets of Tokyo blending ancient temples with ultra-modern skyscrapers.', h:280 },
+      { cat:'Europe',  emoji:'🗽', gradient:'135deg,#0d1f3c,#1a2d5a', title:'Eiffel Tower',       country:'France',    desc:'The iconic iron lattice tower standing tall over the romantic city of Paris.', h:220 },
+      { cat:'Middle East',emoji:'🏙️', gradient:'135deg,#1a1000,#2d1a00', title:'Dubai Skyline',  country:'UAE',       desc:'Futuristic skyscrapers rising from the desert alongside golden sand dunes.', h:260 },
+      { cat:'Asia',    emoji:'🌺', gradient:'135deg,#001a0d,#0d2600', title:'Bali Rice Terraces', country:'Indonesia', desc:'Lush green terraced rice fields cascading down volcanic hillsides in Ubud.', h:240 },
+      { cat:'Europe',  emoji:'🏛️', gradient:'135deg,#1a0d00,#2d1500', title:'Colosseum',         country:'Italy',     desc:'The ancient amphitheater standing as a testament to Roman engineering and history.', h:200 },
+      { cat:'Asia',    emoji:'🏯', gradient:'135deg,#1a001a,#0d0033', title:'Kyoto Temple',       country:'Japan',     desc:'Ancient wooden temples surrounded by cherry blossoms in the cultural heart of Japan.', h:300 },
+      { cat:'Ocean',   emoji:'🏝️', gradient:'135deg,#001a2d,#002d3d', title:'Maldives Overwater', country:'Maldives', desc:'Crystal-clear turquoise waters surrounding luxury overwater bungalows.', h:220 },
+      { cat:'Europe',  emoji:'🌇', gradient:'135deg,#1a0000,#2d1111', title:'Barcelona Architecture',country:'Spain',  desc:'Gaudí\'s surreal masterpieces dotting the skyline of vibrant Barcelona.', h:260 },
+      { cat:'Asia',    emoji:'🌃', gradient:'135deg,#001a1a,#002d2d', title:'Singapore Gardens',  country:'Singapore', desc:'The futuristic Supertrees glowing at night in Gardens by the Bay.', h:240 },
+      { cat:'Americas',emoji:'🌉', gradient:'135deg,#0d1a26,#1a2d3d', title:'New York City',      country:'USA',       desc:'The iconic skyline of Manhattan reflecting on the Hudson River at dusk.', h:280 },
+      { cat:'Ocean',   emoji:'🐠', gradient:'135deg,#001a33,#002d4d', title:'Great Barrier Reef', country:'Australia', desc:'The world\'s largest coral reef system teeming with colorful marine life.', h:220 },
+      { cat:'Europe',  emoji:'🌁', gradient:'135deg,#1a1a00,#2d2d00', title:'Santorini Sunset',  country:'Greece',    desc:'White-washed buildings with blue domes overlooking the Aegean Sea at golden hour.', h:260 },
+      { cat:'Americas',emoji:'🦜', gradient:'135deg,#001a00,#002d00', title:'Amazon Rainforest', country:'Brazil',    desc:'The world\'s largest tropical rainforest, home to millions of species.', h:200 },
+      { cat:'Middle East',emoji:'🕌', gradient:'135deg,#1a0d1a,#2d1a2d', title:'Istanbul Mosque', country:'Turkey', desc:'The magnificent Blue Mosque with its six minarets dominating Istanbul\'s skyline.', h:240 },
+      { cat:'Asia',    emoji:'🏔️', gradient:'135deg,#0d0d1a,#1a1a2d', title:'Himalayan Peaks',   country:'Nepal',     desc:'Snow-capped Himalayan peaks piercing the clouds — home to the world\'s highest summit.', h:280 },
+    ];
+
+    const categories = ['All', ...new Set(photos.map(p => p.cat))];
+    let activeFilter = 'All';
+
+    // Build filters
+    const filtersEl = document.getElementById('filters');
+    categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn' + (cat === 'All' ? ' active' : '');
+      btn.textContent = cat;
+      btn.onclick = () => {
+        activeFilter = cat;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderGallery();
+      };
+      filtersEl.appendChild(btn);
+    });
+
+    function renderGallery() {
+      const grid = document.getElementById('galleryGrid');
+      const filtered = activeFilter === 'All' ? photos : photos.filter(p => p.cat === activeFilter);
+      grid.innerHTML = filtered.map((p, i) => `
+        <div class="gallery-item" onclick="openLightbox(${photos.indexOf(p)})" style="animation:fadeUp 0.4s ${i*0.05}s ease both;">
+          <div class="gallery-img" style="height:${p.h}px; background:linear-gradient(${p.gradient});">
+            <span style="font-size:5rem;position:relative;z-index:1;">${p.emoji}</span>
+            <div class="gallery-overlay">
+              <h4>${p.title}</h4>
+              <p>📍 ${p.country}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openLightbox(idx) {
+      const p = photos[idx];
+      document.getElementById('lbEmoji').textContent = p.emoji;
+      document.getElementById('lbTitle').textContent = p.title;
+      document.getElementById('lbCountry').textContent = '📍 ' + p.country;
+      document.getElementById('lbDesc').textContent = p.desc;
+      document.getElementById('lightbox').classList.add('open');
+    }
+
+    function closeLightbox(e) {
+      if (e.target === document.getElementById('lightbox')) {
+        document.getElementById('lightbox').classList.remove('open');
+      }
+    }
+
+    renderGallery();
+  </script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
