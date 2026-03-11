@@ -1,6 +1,6 @@
 import boto3
 
-AWS_REGION = "ap-south-1"
+AWS_REGION = "ap-southeast-2"
 
 dynamodb = boto3.resource(
     "dynamodb",
@@ -10,4 +10,3 @@ dynamodb = boto3.resource(
 users_table = dynamodb.Table("users")
 bookings_table = dynamodb.Table("bookings")
 reviews_table = dynamodb.Table("reviews")
-
