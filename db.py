@@ -1,11 +1,16 @@
-from pymongo import MongoClient
+import boto3
 
-# MongoDB Connection
-client = MongoClient("mongodb://localhost:27017/")
+AWS_ACCESS_KEY_ID = "YOUR_ACCESS_KEY"
+AWS_SECRET_ACCESS_KEY = "YOUR_SECRET_KEY"
+AWS_REGION = "ap-south-1"
 
-# Database
-db = client["travelgo"]
+dynamodb = boto3.resource(
+    "dynamodb",
+    region_name=AWS_REGION,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+)
 
-# Collections
-users_collection = db["users"]
-bookings_collection = db["bookings"]
+users_table = dynamodb.Table("users")
+bookings_table = dynamodb.Table("bookings")
+reviews_table = dynamodb.Table("reviews")
