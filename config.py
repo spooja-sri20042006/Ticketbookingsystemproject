@@ -1,16 +1,12 @@
 import boto3
 
 # ── AWS DynamoDB Configuration ──
-AWS_ACCESS_KEY_ID     = 'YOUR_ACCESS_KEY_ID'      # Replace this
-AWS_SECRET_ACCESS_KEY = 'YOUR_SECRET_ACCESS_KEY'  # Replace this
-AWS_REGION            = 'ap-south-1'              # Mumbai - India
+AWS_REGION = 'ap-south-1'  # Mumbai - India
 
 # ── DynamoDB Connection ──
 dynamodb = boto3.resource(
     'dynamodb',
-    region_name=AWS_REGION,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    region_name=AWS_REGION
 )
 
 # ── Tables ──
