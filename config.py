@@ -1,14 +1,15 @@
 import boto3
 
-# ── AWS DynamoDB Configuration ──
-AWS_REGION = 'ap-south-1'  # Mumbai - India
+AWS_REGION = "ap-southeast-2"
 
-# ── DynamoDB Connection ──
 dynamodb = boto3.resource(
-    'dynamodb',
+    "dynamodb",
     region_name=AWS_REGION
 )
 
+users_table = dynamodb.Table("users")
+bookings_table = dynamodb.Table("bookings")
+reviews_table = dynamodb.Table("reviews")
 # ── Tables ──
 users_table    = dynamodb.Table('users')
 bookings_table = dynamodb.Table('bookings')
@@ -51,3 +52,4 @@ def create_tables():
         print("reviews table created!")
 
     print("All DynamoDB tables ready!")
+
